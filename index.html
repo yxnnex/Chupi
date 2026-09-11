@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ruleta de Fiesta 🍻 - Verdad o Consecuencia</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: radial-gradient(circle at center, #1a0b2e 0%, #090214 100%);
+      color: #ffffff;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Glow utilities */
+    .glow-pink {
+      box-shadow: 0 0 25px rgba(255, 0, 127, 0.6);
+    }
+    .glow-cyan {
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.6);
+    }
+    .text-glow-pink {
+      text-shadow: 0 0 12px rgba(255, 0, 127, 0.8);
+    }
+    .text-glow-cyan {
+      text-shadow: 0 0 12px rgba(0, 240, 255, 0.8);
+    }
+
+    /* Floating bubble animations */
+    @keyframes bubblePop {
+      0% {
+        transform: scale(0.3) translateY(100px);
+        opacity: 0;
+      }
+      60% {
+        transform: scale(1.08) translateY(-10px);
+        opacity: 1;
+      }
+      80% {
+        transform: scale(0.95) translateY(5px);
+      }
+      100% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes floatSoft {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-8px) rotate(1deg); }
+    }
+
+    .animate-bubble {
+      animation: bubblePop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, floatSoft 4s ease-in-out infinite 0.5s;
+    }
+
+    /* Wheel Pointer Glow */
+    .pointer-glow {
+      filter: drop-shadow(0px 0px 8px #ff007f);
+    }
+
+    /* Confetti animation canvas styling */
+    #confetti-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 90;
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen items-center justify-between p-3 sm:p-6 relative">
+
+  <canvas id="confetti-canvas"></canvas>
+
+  <header class="text-center my-2 sm:my-4 z-10 w-full max-w-xl">
+    <h1 class="text-3xl sm:text-5xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-400 to-cyan-400 drop-shadow-md">
+      RULETA DE FIESTA 🍻
+    </h1>
+    <p class="text-xs sm:text-sm text-purple-300 mt-1 font-semibold tracking-wide">
+      ¡Gira, cumple el reto o bebe sin escusas!
+    </p>
+  </header>
+
+  <main class="flex flex-col items-center justify-center w-full max-w-4xl z-10 my-auto">
+    
+    <!-- Player Bar & Turn Info -->
+    <div class="w-full max-w-md bg-purple-950/60 backdrop-blur-md border border-purple-500/30 rounded-2xl p-3 sm:p-4 mb-4 shadow-2xl text-center">
+      <div id="player-turn-container" class="flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <span class="text-xl sm:text-2xl">👑</span>
+          <div class="text-left">
+            <p class="text-xs text-purple-300 uppercase tracking-wider">Turno actual</p>
+            <p id="current-player-name" class="text-lg sm:text-xl font-extrabold text-cyan-300 text-glow-cyan">
+              Jugador 1
+            </p>
+          </div>
+        </div>
+        <button id="btn-manage-players" class="bg-purple-800/80 hover:bg-purple-700 text-xs sm:text-sm px-3 py-1.5 rounded-xl border border-purple-400/30 transition flex items-center gap-1.5">
+          <i class="fa-solid fa-users text-pink-400"></i>
+          <span>Jugadores (<span id="player-count-badge">0</span>)</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="relative flex flex-col items-center justify-center my-2">
+      <!-- Outer Decorative Ring -->
+      <div class="relative p-2.5 sm:p-4 rounded-full bg-gradient-to-b from-pink-500/30 via-purple-600/20 to-cyan-500/30 border border-purple-500/40 shadow-2xl backdrop-blur-sm">
+        
+        <!-- Wheel Pointer (Indicator at top) -->
+        <div class="absolute -top-4 left-1/2 -translate-x-1/2 z-30 pointer-glow">
+          <div class="w-0 h-0 border-l-[16px] border-l-transparent border-r-[16px] border-r-transparent border-t-[32px] border-t-pink-500"></div>
+        </div>
+
+        <!-- Canvas for the Wheel -->
+        <div class="relative w-[320px] h-[320px] sm:w-[420px] sm:h-[420px] rounded-full overflow-hidden shadow-inner">
+          <canvas id="wheel-canvas" width="500" height="500" class="w-full h-full cursor-pointer"></canvas>
+          
+          <!-- Center Pin / Spin Trigger Button -->
+          <button id="spin-center-btn" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-pink-500 to-purple-800 hover:from-pink-400 hover:to-purple-700 text-white font-black text-sm sm:text-base rounded-full border-4 border-purple-200 shadow-xl flex items-center justify-center transition transform active:scale-95 z-20">
+            GIRAR
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Spin Button -->
+      <button id="spin-main-btn" class="mt-6 px-8 py-3.5 sm:px-10 sm:py-4 bg-gradient-to-r from-pink-500 via-purple-600 to-cyan-500 hover:from-pink-400 hover:to-cyan-400 text-white font-black text-lg sm:text-xl rounded-2xl shadow-lg glow-pink transform transition hover:-translate-y-0.5 active:translate-y-1">
+        ¡GIRAR RULETA! 🎲
+      </button>
+    </div>
+
+  </main>
+
+  <div id="modal-players" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-purple-950 border border-purple-500/40 rounded-3xl p-6 w-full max-w-md shadow-2xl">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold text-pink-400 flex items-center gap-2">
+          <i class="fa-solid fa-user-plus"></i> Jugadores
+        </h2>
+        <button id="btn-close-players" class="text-gray-400 hover:text-white text-xl">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="flex gap-2 mb-4">
+        <input type="text" id="input-player-name" placeholder="Nombre del amigo/a..." class="flex-1 bg-purple-900/60 border border-purple-500/40 rounded-xl px-4 py-2 text-white placeholder-purple-400 focus:outline-none focus:border-pink-500">
+        <button id="btn-add-player" class="bg-pink-600 hover:bg-pink-500 text-white px-4 py-2 rounded-xl font-bold transition">
+          Añadir
+        </button>
+      </div>
+
+      <div id="player-list" class="max-h-48 overflow-y-auto space-y-2 mb-4 pr-1">
+        <!-- Player items rendered dynamically -->
+      </div>
+
+      <p class="text-xs text-purple-300 text-center mb-4">Agrega a los participantes para llevar el turno de giro.</p>
+
+      <button id="btn-start-game" class="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold rounded-xl transition shadow-lg">
+        ¡Listo para jugar!
+      </button>
+    </div>
+  </div>
+
+  <div id="modal-result" class="fixed inset-0 bg-black/85 backdrop-blur-lg flex items-center justify-center p-4 z-50 hidden">
+    <div id="bubble-card" class="animate-bubble bg-gradient-to-b from-purple-900 via-indigo-950 to-slate-950 border-2 border-pink-500/80 rounded-3xl p-6 sm:p-8 w-full max-w-lg shadow-[0_0_50px_rgba(255,0,127,0.4)] text-center relative overflow-hidden">
+      
+      <!-- Ambient Glow Behind Popup -->
+      <div class="absolute -top-12 -left-12 w-32 h-32 bg-pink-500/20 rounded-full blur-2xl"></div>
+      <div class="absolute -bottom-12 -right-12 w-32 h-32 bg-cyan-500/20 rounded-full blur-2xl"></div>
+
+      <!-- Icon Header Badge -->
+      <div id="result-badge-icon" class="w-20 h-20 mx-auto -mt-2 mb-4 rounded-full bg-purple-800/80 border-2 border-pink-400 flex items-center justify-center text-3xl shadow-lg">
+        ❓
+      </div>
+
+      <!-- Category Label -->
+      <p id="result-category" class="text-xs sm:text-sm font-extrabold uppercase tracking-widest text-pink-400 mb-2">
+        VERDAD
+      </p>
+
+      <!-- Targeted Player Name -->
+      <h3 id="result-player-target" class="text-lg sm:text-xl font-bold text-cyan-300 mb-4">
+        ¡Le toca a Juan!
+      </h3>
+
+      <!-- Content Box -->
+      <div class="bg-purple-950/80 border border-purple-500/30 rounded-2xl p-4 sm:p-6 mb-6 min-h-[110px] flex items-center justify-center shadow-inner">
+        <p id="result-text" class="text-base sm:text-lg text-purple-100 font-semibold leading-relaxed">
+          ¿Dormiste alguna vez en llamada con alguien con intereses románticos?
+        </p>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <button id="btn-next-turn" class="w-full py-3.5 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white font-extrabold text-base rounded-2xl transition shadow-lg glow-pink">
+          ¡Cumplido! Siguiente Turno 🍻
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="mt-4 text-center text-xs text-purple-400/60 z-10">
+    Bebe con responsabilidad. ¡Prohibido rajarse! 🎉
+  </footer>
+
+  <script>
+    /* =====================================================================
+       DATA COLLECTIONS & STATE
+       ===================================================================== */
+    
+    // Truth questions array
+    const TRUTHS_BASE = [
+      "Dí cuántas personas sin nombre de un jueguito traspasaste.",
+      "¿Cuántas personas tuvieron o tienen nudes tuyos?",
+      "¿Dormiste alguna vez en llamada con alguien con intereses románticos?",
+      "¿Alguna vez sentiste celos? ¿Te animás a contar el motivo?",
+      "¿Golpeaste a alguien? Si es sí, ¿por qué?",
+      "¿Alguna vez te atrajo alguien por su voz y al conocerlo o ver una foto, te decepcionaste?",
+      "¿Mentiste en un baile cuando te pidieron el nombre?",
+      "¿Mandaste a un amigo/a a encarar a alguien que te pareció linda/o?",
+      "¿Alguna vez cuestionaste la manera de vestir de la persona que conociste a través de internet? (Después de verse).",
+      "¿Te durmieron el chamuyo? ¿Quién?"
+    ];
+
+    // Dare challenges array
+    const DARES_BASE = [
+      "Sírvete tu trago en un vaso normal y haz fondo blanco. Si te niegas, debes publicar una historia que diga \"Estoy re enpedo\" con la botella y vaso de protagonistas.",
+      "Haz que alguien responda tu historia random (sí, sube una) y hazle creer que estás muy borracho/a y hasta que no se ría de ti no pares de decir estupideces.",
+      "Quítate una prenda (no vale zapatillas ni medias; debe ser campera, bufanda, o remera. Si eres mujer y no tienes campera, el pantalón y te tapas luego).",
+      "Manda un mensaje a un amigo que no sepa que estás bebiendo y dile \"Te quiero mucho\". Hasta que marque el visto, debes mostrar en pantalla que lo vio.",
+      "Píntate los labios de rojo (si eres hombre pide un labial). Si no tienes, busca un lápiz y escríbete en la frente \"TONTO\".",
+      "Cuenta un secreto de tu infancia."
+    ];
+
+    // Decks for no-repeat drawn until emptied
+    let truthDeck = [...TRUTHS_BASE];
+    let dareDeck = [...DARES_BASE];
+
+    // Fixed 23 Slices for the wheel
+    const WHEEL_SLICES = [
+      { type: "VERDAD", label: "VERDAD", color: "#ec4899", icon: "❓" },
+      { type: "CONSECUENCIA", label: "CONSECUENCIA", color: "#8b5cf6", icon: "🔥" },
+      { type: "ACTION", label: "Bebes 2 sorbos", color: "#06b6d4", icon: "🍺" },
+      { type: "VERDAD", label: "VERDAD", color: "#ec4899", icon: "❓" },
+      { type: "ACTION", label: "Todos beben menos tú", color: "#f59e0b", icon: "👑" },
+      { type: "CONSECUENCIA", label: "CONSECUENCIA", color: "#8b5cf6", icon: "🔥" },
+      { type: "ACTION", label: "Todos beben", color: "#ef4444", icon: "🍻" },
+      { type: "VERDAD", label: "VERDAD", color: "#ec4899", icon: "❓" },
+      { type: "ACTION", label: "Bebe 3 sorbos grandes", color: "#3b82f6", icon: "🌊" },
+      { type: "CONSECUENCIA", label: "CONSECUENCIA", color: "#8b5cf6", icon: "🔥" },
+      { type: "ACTION", label: "Chupito Doble 🥃", color: "#10b981", icon: "🥃" },
+      { type: "VERDAD", label: "VERDAD", color: "#ec4899", icon: "❓" },
+      { type: "ACTION", label: "Sorbo de cabeza 🙃", color: "#6366f1", icon: "🤸" },
+      { type: "CONSECUENCIA", label: "CONSECUENCIA", color: "#8b5cf6", icon: "🔥" },
+      { type: "ACTION", label: "Obliga a alguien a beber", color: "#d946ef", icon: "👉" },
+      { type: "VERDAD", label: "VERDAD", color: "#ec4899", icon: "❓" },
+      { type: "ACTION", label: "Perrea 30 segs 💃", color: "#f43f5e", icon: "🎵" },
+      { type: "CONSECUENCIA", label: "CONSECUENCIA", color: "#8b5cf6", icon: "🔥" },
+      { type: "ACTION", label: "Bebe 1 sorbo", color: "#14b8a6", icon: "🥤" },
+      { type: "VERDAD", label: "VERDAD", color: "#ec4899", icon: "❓" },
+      { type: "ACTION", label: "Todos beben 🍻", color: "#ef4444", icon: "🍻" },
+      { type: "CONSECUENCIA", label: "CONSECUENCIA", color: "#8b5cf6", icon: "🔥" },
+      { type: "ACTION", label: "Bebes 2 sorbos", color: "#06b6d4", icon: "🍺" }
+    ];
+
+    // State Variables
+    let players = ["Jugador 1", "Jugador 2", "Jugador 3"];
+    let currentPlayerIndex = 0;
+    let currentRotation = 0; // In radians
+    let isSpinning = false;
+
+    /* =====================================================================
+       AUDIO SYNTHESIZER (Web Audio API for ticking & cheer sounds)
+       ===================================================================== */
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playTickSound() {
+      try {
+        initAudio();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.04);
+
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.04);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.04);
+      } catch (e) {
+        // Audio error fallback
+      }
+    }
+
+    function playWinSound() {
+      try {
+        initAudio();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const now = audioCtx.currentTime;
+        const notes = [261.63, 329.63, 392.00, 523.25]; // C E G C
+        
+        notes.forEach((freq, idx) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+
+          gain.gain.setValueAtTime(0.2, now + idx * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.3);
+
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+
+          osc.start(now + idx * 0.08);
+          osc.stop(now + idx * 0.08 + 0.3);
+        });
+      } catch (e) {}
+    }
+
+    /* =====================================================================
+       CANVAS WHEEL RENDERING
+       ===================================================================== */
+    const canvas = document.getElementById('wheel-canvas');
+    const ctx = canvas.getContext('2d');
+    const numSlices = WHEEL_SLICES.length;
+    const sliceAngle = (2 * Math.PI) / numSlices;
+
+    function drawWheel() {
+      const width = canvas.width;
+      const height = canvas.height;
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const radius = width / 2 - 10;
+
+      ctx.clearRect(0, 0, width, height);
+
+      // Draw slices
+      for (let i = 0; i < numSlices; i++) {
+        const angle = currentRotation + i * sliceAngle;
+        const slice = WHEEL_SLICES[i];
+
+        ctx.beginPath();
+        ctx.fillStyle = slice.color;
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, angle, angle + sliceAngle);
+        ctx.lineTo(centerX, centerY);
+        ctx.fill();
+
+        // Stroke divider line
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#1e0938';
+        ctx.stroke();
+
+        // Text & Icons
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(angle + sliceAngle / 2);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#ffffff';
+        
+        // Font styling based on label length
+        if (slice.label.length > 12) {
+          ctx.font = 'bold 11px Outfit, sans-serif';
+        } else {
+          ctx.font = 'black 13px Outfit, sans-serif';
+        }
+
+        // Draw icon & label
+        ctx.fillText(`${slice.icon} ${slice.label}`, radius - 20, 4);
+        ctx.restore();
+      }
+
+      // Outer rim styling
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+      ctx.lineWidth = 8;
+      ctx.strokeStyle = '#d946ef';
+      ctx.stroke();
+    }
+
+    /* =====================================================================
+       SPIN LOGIC & ACCELERATION / DECELERATION
+       ===================================================================== */
+    let lastSliceIndex = -1;
+
+    function spinWheel() {
+      if (isSpinning) return;
+      initAudio();
+      isSpinning = true;
+
+      // Disable buttons
+      document.getElementById('spin-main-btn').classList.add('opacity-50', 'cursor-not-allowed');
+      document.getElementById('spin-center-btn').classList.add('opacity-50', 'cursor-not-allowed');
+
+      // Random target angle (At least 5 full turns + random target)
+      const extraRounds = 5 + Math.floor(Math.random() * 4);
+      const randomOffset = Math.random() * (2 * Math.PI);
+      const totalSpinAngle = extraRounds * (2 * Math.PI) + randomOffset;
+      
+      const duration = 5000; // 5 seconds spin
+      const startTime = performance.now();
+      const initialRotation = currentRotation;
+
+      function animateSpin(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        // Cubic ease-out formula for realistic physics deceleration
+        const easeOut = 1 - Math.pow(1 - progress, 4);
+        currentRotation = initialRotation + totalSpinAngle * easeOut;
+
+        // Check for tick sound on slice change
+        const currentNormalizedAngle = (3 * Math.PI / 2 - (currentRotation % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+        const currentSliceIndex = Math.floor(currentNormalizedAngle / sliceAngle) % numSlices;
+
+        if (currentSliceIndex !== lastSliceIndex) {
+          playTickSound();
+          lastSliceIndex = currentSliceIndex;
+        }
+
+        drawWheel();
+
+        if (progress < 1) {
+          requestAnimationFrame(animateSpin);
+        } else {
+          isSpinning = false;
+          document.getElementById('spin-main-btn').classList.remove('opacity-50', 'cursor-not-allowed');
+          document.getElementById('spin-center-btn').classList.remove('opacity-50', 'cursor-not-allowed');
+          handleSpinResult(currentSliceIndex);
+        }
+      }
+
+      requestAnimationFrame(animateSpin);
+    }
+
+    /* =====================================================================
+       RESULT PROCESSING & POPUP DISPLAY
+       ===================================================================== */
+    function handleSpinResult(sliceIndex) {
+      playWinSound();
+      triggerConfetti();
+
+      const selectedSlice = WHEEL_SLICES[sliceIndex];
+      const activePlayer = players[currentPlayerIndex] || "Jugador";
+
+      const modal = document.getElementById('modal-result');
+      const categoryText = document.getElementById('result-category');
+      const badgeIcon = document.getElementById('result-badge-icon');
+      const playerTarget = document.getElementById('result-player-target');
+      const resultText = document.getElementById('result-text');
+      const bubbleCard = document.getElementById('bubble-card');
+
+      playerTarget.innerText = `¡Le toca a ${activePlayer}!`;
+
+      if (selectedSlice.type === 'VERDAD') {
+        categoryText.innerText = 'VERDAD';
+        categoryText.className = 'text-xs sm:text-sm font-extrabold uppercase tracking-widest text-pink-400 mb-2';
+        badgeIcon.innerText = '❓';
+        badgeIcon.className = 'w-20 h-20 mx-auto -mt-2 mb-4 rounded-full bg-pink-900/80 border-2 border-pink-400 flex items-center justify-center text-3xl shadow-lg';
+        bubbleCard.className = 'animate-bubble bg-gradient-to-b from-purple-950 via-pink-950 to-slate-950 border-2 border-pink-500 rounded-3xl p-6 sm:p-8 w-full max-w-lg shadow-[0_0_50px_rgba(255,0,127,0.5)] text-center relative overflow-hidden';
+        
+        resultText.innerText = getNextTruth();
+
+      } else if (selectedSlice.type === 'CONSECUENCIA') {
+        categoryText.innerText = 'CONSECUENCIA';
+        categoryText.className = 'text-xs sm:text-sm font-extrabold uppercase tracking-widest text-purple-400 mb-2';
+        badgeIcon.innerText = '🔥';
+        badgeIcon.className = 'w-20 h-20 mx-auto -mt-2 mb-4 rounded-full bg-purple-900/80 border-2 border-purple-400 flex items-center justify-center text-3xl shadow-lg';
+        bubbleCard.className = 'animate-bubble bg-gradient-to-b from-slate-950 via-purple-950 to-indigo-950 border-2 border-purple-500 rounded-3xl p-6 sm:p-8 w-full max-w-lg shadow-[0_0_50px_rgba(139,92,246,0.5)] text-center relative overflow-hidden';
+        
+        resultText.innerText = getNextDare();
+
+      } else {
+        // Direct Action Slices
+        categoryText.innerText = 'ACCIÓN DIRECTA';
+        categoryText.className = 'text-xs sm:text-sm font-extrabold uppercase tracking-widest text-cyan-400 mb-2';
+        badgeIcon.innerText = selectedSlice.icon;
+        badgeIcon.className = 'w-20 h-20 mx-auto -mt-2 mb-4 rounded-full bg-cyan-900/80 border-2 border-cyan-400 flex items-center justify-center text-3xl shadow-lg';
+        bubbleCard.className = 'animate-bubble bg-gradient-to-b from-slate-950 via-cyan-950 to-blue-950 border-2 border-cyan-500 rounded-3xl p-6 sm:p-8 w-full max-w-lg shadow-[0_0_50px_rgba(6,182,212,0.5)] text-center relative overflow-hidden';
+
+        resultText.innerText = selectedSlice.label;
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    // Draw from Truth deck without repeating until empty
+    function getNextTruth() {
+      if (truthDeck.length === 0) {
+        truthDeck = [...TRUTHS_BASE];
+      }
+      const randIdx = Math.floor(Math.random() * truthDeck.length);
+      return truthDeck.splice(randIdx, 1)[0];
+    }
+
+    // Draw from Dare deck without repeating until empty
+    function getNextDare() {
+      if (dareDeck.length === 0) {
+        dareDeck = [...DARES_BASE];
+      }
+      const randIdx = Math.floor(Math.random() * dareDeck.length);
+      return dareDeck.splice(randIdx, 1)[0];
+    }
+
+    function nextTurn() {
+      document.getElementById('modal-result').classList.add('hidden');
+      if (players.length > 0) {
+        currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+        updatePlayerUI();
+      }
+    }
+
+    /* =====================================================================
+       PLAYER MANAGEMENT
+       ===================================================================== */
+    function updatePlayerUI() {
+      const activeName = players.length > 0 ? players[currentPlayerIndex] : "Añade Jugadores";
+      document.getElementById('current-player-name').innerText = activeName;
+      document.getElementById('player-count-badge').innerText = players.length;
+
+      const listContainer = document.getElementById('player-list');
+      listContainer.innerHTML = '';
+
+      players.forEach((player, idx) => {
+        const item = document.createElement('div');
+        item.className = 'flex justify-between items-center bg-purple-900/40 border border-purple-500/20 px-3 py-2 rounded-xl text-sm';
+        item.innerHTML = `
+          <span class="font-semibold ${idx === currentPlayerIndex ? 'text-cyan-300 font-bold' : 'text-purple-200'}">
+            ${idx === currentPlayerIndex ? '👑 ' : ''}${player}
+          </span>
+          <button onclick="removePlayer(${idx})" class="text-rose-400 hover:text-rose-300 px-2">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        `;
+        listContainer.appendChild(item);
+      });
+    }
+
+    function addPlayer() {
+      const input = document.getElementById('input-player-name');
+      const name = input.value.trim();
+      if (name) {
+        players.push(name);
+        input.value = '';
+        updatePlayerUI();
+      }
+    }
+
+    function removePlayer(index) {
+      players.splice(index, 1);
+      if (currentPlayerIndex >= players.length) {
+        currentPlayerIndex = 0;
+      }
+      updatePlayerUI();
+    }
+
+    /* =====================================================================
+       CONFETTI EFFECT
+       ===================================================================== */
+    const confettiCanvas = document.getElementById('confetti-canvas');
+    const confettiCtx = confettiCanvas.getContext('2d');
+    let confettiParticles = [];
+
+    function resizeConfettiCanvas() {
+      confettiCanvas.width = window.innerWidth;
+      confettiCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeConfettiCanvas);
+    resizeConfettiCanvas();
+
+    function triggerConfetti() {
+      confettiParticles = [];
+      const colors = ['#ec4899', '#8b5cf6', '#06b6d4', '#f59e0b', '#10b981'];
+      for (let i = 0; i < 70; i++) {
+        confettiParticles.push({
+          x: confettiCanvas.width / 2,
+          y: confettiCanvas.height / 2,
+          vx: (Math.random() - 0.5) * 14,
+          vy: (Math.random() - 0.7) * 14,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          size: Math.random() * 8 + 4,
+          gravity: 0.25,
+          alpha: 1
+        });
+      }
+      animateConfetti();
+    }
+
+    function animateConfetti() {
+      confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      let active = false;
+
+      confettiParticles.forEach(p => {
+        if (p.alpha > 0) {
+          active = true;
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += p.gravity;
+          p.alpha -= 0.015;
+
+          confettiCtx.globalAlpha = Math.max(0, p.alpha);
+          confettiCtx.fillStyle = p.color;
+          confettiCtx.fillRect(p.x, p.y, p.size, p.size);
+        }
+      });
+
+      if (active) {
+        requestAnimationFrame(animateConfetti);
+      }
+    }
+
+    /* =====================================================================
+       EVENT LISTENERS & INITIALIZATION
+       ===================================================================== */
+    window.onload = function() {
+      drawWheel();
+      updatePlayerUI();
+
+      // Spin Buttons
+      document.getElementById('spin-main-btn').addEventListener('click', spinWheel);
+      document.getElementById('spin-center-btn').addEventListener('click', spinWheel);
+      document.getElementById('wheel-canvas').addEventListener('click', spinWheel);
+
+      // Player Modal Controls
+      document.getElementById('btn-manage-players').addEventListener('click', () => {
+        document.getElementById('modal-players').classList.remove('hidden');
+      });
+      document.getElementById('btn-close-players').addEventListener('click', () => {
+        document.getElementById('modal-players').classList.add('hidden');
+      });
+      document.getElementById('btn-start-game').addEventListener('click', () => {
+        document.getElementById('modal-players').classList.add('hidden');
+      });
+      document.getElementById('btn-add-player').addEventListener('click', addPlayer);
+      document.getElementById('input-player-name').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') addPlayer();
+      });
+
+      // Result Modal Controls
+      document.getElementById('btn-next-turn').addEventListener('click', nextTurn);
+    };
+  </script>
+</body>
+</html>
