@@ -3,672 +3,478 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Papois de Chupi 🍻 - Verdad o Consecuencia</title>
+  <title>Papois De Chupi</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
-  
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap');
+    
     body {
       font-family: 'Outfit', sans-serif;
-      background: radial-gradient(circle at center, #1a0b2e 0%, #090214 100%);
-      color: #ffffff;
-      min-height: 100vh;
-      overflow-x: hidden;
+      background: radial-gradient(circle at center, #1e0b36 0%, #090214 100%);
+      color: #fff;
     }
 
-    /* Glow utilities */
-    .glow-pink {
-      box-shadow: 0 0 25px rgba(255, 0, 127, 0.6);
-    }
-    .glow-cyan {
-      box-shadow: 0 0 25px rgba(0, 240, 255, 0.6);
-    }
-    .text-glow-pink {
-      text-shadow: 0 0 12px rgba(255, 0, 127, 0.8);
-    }
-    .text-glow-cyan {
-      text-shadow: 0 0 12px rgba(0, 240, 255, 0.8);
+    .neon-text-pink {
+      text-shadow: 0 0 10px rgba(255, 0, 127, 0.8), 0 0 20px rgba(255, 0, 127, 0.5);
     }
 
-    /* Floating bubble animations */
-    @keyframes bubblePop {
-      0% {
-        transform: scale(0.3) translateY(100px);
-        opacity: 0;
-      }
-      60% {
-        transform: scale(1.08) translateY(-10px);
-        opacity: 1;
-      }
-      80% {
-        transform: scale(0.95) translateY(5px);
-      }
-      100% {
-        transform: scale(1) translateY(0);
-        opacity: 1;
-      }
+    .neon-border {
+      box-shadow: 0 0 15px rgba(236, 72, 153, 0.4), inset 0 0 15px rgba(236, 72, 153, 0.2);
     }
 
-    @keyframes floatSoft {
-      0%, 100% { transform: translateY(0px) rotate(0deg); }
-      50% { transform: translateY(-8px) rotate(1deg); }
+    /* Modals & Bubbles */
+    .popup-bubble {
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     }
 
-    .animate-bubble {
-      animation: bubblePop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, floatSoft 4s ease-in-out infinite 0.5s;
+    @keyframes popIn {
+      0% { transform: scale(0.3) translateY(100px); opacity: 0; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
     }
 
-    /* Wheel Pointer Glow */
-    .pointer-glow {
-      filter: drop-shadow(0px 0px 8px #ff007f);
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
     }
-
-    /* Confetti animation canvas styling */
-    #confetti-canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      pointer-events: none;
-      z-index: 90;
+    ::-webkit-scrollbar-track {
+      background: rgba(0,0,0,0.2);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(236, 72, 153, 0.5);
+      border-radius: 10px;
     }
   </style>
 </head>
-<body class="flex flex-col min-h-screen items-center justify-between p-2 sm:p-6 relative">
+<body class="min-h-screen p-4 md:p-6 flex flex-col items-center justify-between selection:bg-pink-500 selection:text-white">
 
-  <canvas id="confetti-canvas"></canvas>
+  <!-- TOP HEADER & CASH PRIZE POOL -->
+  <header class="w-full max-w-5xl flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
+    <div class="text-center md:text-left">
+      <h1 class="text-3xl md:text-5xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-400 to-cyan-400 neon-text-pink">
+        RULETA  🍻
+      </h1>
+      <p class="text-gray-400 text-sm md:text-base font-semibold">¡Gana puntos, cumple retos y llévate el pozo!</p>
+    </div>
 
-  <header class="text-center my-1 sm:my-3 z-10 w-full max-w-xl">
-    <h1 class="text-4xl sm:text-6xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-400 to-cyan-400 drop-shadow-md">
-      PAPOIS DE CHUPI 🍻
-    </h1>
-    <p class="text-sm sm:text-lg text-purple-300 mt-1 font-bold tracking-wide">
-      ¡Gira, cumple el reto y bebe sin excusas!
-    </p>
+    <!-- POZO DE DINERO -->
+    <div class="bg-gradient-to-r from-yellow-500/20 via-amber-500/10 to-yellow-500/20 border-2 border-yellow-500/50 rounded-2xl p-3 md:p-4 flex items-center gap-4 shadow-lg shadow-yellow-500/10">
+      <div class="text-3xl md:text-4xl">💰</div>
+      <div>
+        <div class="text-xs uppercase font-extrabold tracking-widest text-yellow-400">Pozo Acumulado</div>
+        <div id="prize-pool-display" class="text-2xl md:text-3xl font-black text-yellow-300">$0</div>
+      </div>
+      <div class="border-l border-yellow-500/30 pl-3">
+        <label class="text-[10px] uppercase font-bold text-gray-400 block">Apuesta c/u</label>
+        <input type="number" id="bet-input" value="1000" step="500" min="0" onchange="updatePrizePool()" class="w-20 bg-black/40 border border-yellow-500/40 rounded px-2 py-1 text-xs text-yellow-300 font-bold focus:outline-none focus:border-yellow-400">
+      </div>
+    </div>
   </header>
 
-  <main class="flex flex-col items-center justify-center w-full max-w-5xl z-10 my-auto">
+  <!-- MAIN GAME AREA -->
+  <main class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-6 items-start my-auto">
     
-    <!-- Player Bar & Turn Info -->
-    <div class="w-full max-w-xl bg-purple-950/70 backdrop-blur-md border-2 border-purple-500/40 rounded-2xl p-3 sm:p-5 mb-3 sm:mb-5 shadow-2xl text-center">
-      <div id="player-turn-container" class="flex items-center justify-between gap-2">
-        <div class="flex items-center space-x-3">
-          <span class="text-2xl sm:text-4xl">👑</span>
-          <div class="text-left">
-            <p class="text-xs sm:text-sm text-purple-300 uppercase tracking-widest font-extrabold">Turno actual</p>
-            <p id="current-player-name" class="text-2xl sm:text-3xl font-black text-cyan-300 text-glow-cyan tracking-wide">
-              Jugador 1
-            </p>
-          </div>
-        </div>
-        <button id="btn-manage-players" class="bg-purple-800 hover:bg-purple-700 text-sm sm:text-base px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl border border-purple-400/40 font-bold transition flex items-center gap-2">
-          <i class="fa-solid fa-users text-pink-400 text-lg"></i>
-          <span>Jugadores (<span id="player-count-badge">0</span>)</span>
+    <!-- LEFT PANEL: PLAYERS & LEADERBOARD -->
+    <section class="lg:col-span-4 bg-slate-900/80 backdrop-blur-md border border-purple-500/30 rounded-3xl p-5 shadow-2xl order-2 lg:order-1">
+      <h2 class="text-xl font-black text-pink-400 mb-4 flex items-center justify-between">
+        <span>🏆 POSICIONES</span>
+        <span class="text-xs font-normal text-gray-400">Meta: <strong class="text-pink-400" id="target-score-display">100 pts</strong></span>
+      </h2>
+
+      <!-- ADD PLAYER INPUT -->
+      <div class="flex gap-2 mb-4">
+        <input type="text" id="player-name-input" placeholder="Nombre jugador..." class="flex-1 bg-black/50 border border-purple-500/40 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-pink-500">
+        <button onclick="addPlayer()" class="bg-pink-600 hover:bg-pink-500 font-bold px-4 py-2 rounded-xl text-sm transition-all shadow-lg shadow-pink-600/30">
+          + Agregar
         </button>
       </div>
-    </div>
 
-    <!-- Larger Wheel Container -->
-    <div class="relative flex flex-col items-center justify-center my-1 sm:my-2 w-full max-w-[650px] aspect-square px-2">
-      <!-- Outer Decorative Ring -->
-      <div class="relative w-full h-full p-2.5 sm:p-4 rounded-full bg-gradient-to-b from-pink-500/30 via-purple-600/20 to-cyan-500/30 border border-purple-500/40 shadow-2xl backdrop-blur-sm flex items-center justify-center">
-        
-        <!-- Wheel Pointer (Indicator at top) -->
-        <div class="absolute -top-4 sm:-top-6 left-1/2 -translate-x-1/2 z-30 pointer-glow">
-          <div class="w-0 h-0 border-l-[22px] sm:border-l-[28px] border-l-transparent border-r-[22px] sm:border-r-[28px] border-r-transparent border-t-[44px] sm:border-t-[54px] border-t-pink-500"></div>
-        </div>
+      <!-- LEADERBOARD LIST -->
+      <div id="leaderboard" class="space-y-2 max-h-[300px] lg:max-h-[400px] overflow-y-auto pr-1">
+        <!-- Dynamic Player Items -->
+      </div>
+    </section>
 
-        <!-- Canvas for the Wheel (High resolution canvas with responsive sizing) -->
-        <div class="relative w-full h-full rounded-full overflow-hidden shadow-inner flex items-center justify-center">
-          <canvas id="wheel-canvas" width="800" height="800" class="w-full h-full cursor-pointer"></canvas>
-          
-          <!-- Center Pin / Spin Trigger Button -->
-          <button id="spin-center-btn" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-pink-500 to-purple-800 hover:from-pink-400 hover:to-purple-700 text-white font-black text-xl sm:text-2xl tracking-wider rounded-full border-4 sm:border-6 border-purple-200 shadow-2xl flex items-center justify-center transition transform active:scale-95 z-20">
-            GIRAR
-          </button>
-        </div>
+    <!-- RIGHT PANEL: ROULETTE & TURN DISPLAY -->
+    <section class="lg:col-span-8 flex flex-col items-center justify-center order-1 lg:order-2">
+      
+      <!-- CURRENT TURN BANNER -->
+      <div id="turn-banner" class="mb-4 bg-gradient-to-r from-pink-600/30 via-purple-600/30 to-pink-600/30 border border-pink-500/50 px-6 py-2 rounded-full backdrop-blur-md shadow-lg shadow-pink-500/20 text-center">
+        <span class="text-xs uppercase font-bold text-gray-300 block tracking-widest">TURNO DE</span>
+        <span id="current-player-name" class="text-2xl md:text-3xl font-black text-pink-300">¡Añade Jugadores!</span>
       </div>
 
-      <!-- Main Spin Button -->
-      <button id="spin-main-btn" class="mt-4 sm:mt-6 px-10 py-4 sm:px-14 sm:py-5 bg-gradient-to-r from-pink-500 via-purple-600 to-cyan-500 hover:from-pink-400 hover:to-cyan-400 text-white font-black text-2xl sm:text-3xl tracking-wider rounded-2xl shadow-2xl glow-pink transform transition hover:-translate-y-0.5 active:translate-y-1">
-        ¡GIRAR RULETA! 🎲
-      </button>
-    </div>
+      <!-- WHEEL CONTAINER -->
+      <div class="relative w-full max-w-[550px] aspect-square flex items-center justify-center my-2">
+        <!-- POINTER -->
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2 z-20 w-0 h-0 border-l-[20px] border-l-transparent border-r-[20px] border-r-transparent border-t-[35px] border-t-pink-500 drop-shadow-[0_0_10px_rgba(236,72,153,0.8)]"></div>
 
+        <!-- CANVAS -->
+        <canvas id="canvas" width="800" height="800" class="w-full h-full rounded-full border-4 border-pink-500/50 shadow-[0_0_50px_rgba(236,72,153,0.3)] bg-black/40"></canvas>
+
+        <!-- CENTER SPIN BUTTON -->
+        <button id="spin-btn" onclick="spin()" class="absolute z-10 w-24 h-24 md:w-28 md:h-28 rounded-full bg-gradient-to-tr from-pink-600 via-rose-500 to-purple-600 border-4 border-white shadow-[0_0_30px_rgba(244,63,94,0.8)] font-black text-xl md:text-2xl text-white hover:scale-105 active:scale-95 transition-transform flex items-center justify-center tracking-wider">
+          ¡GIRAR!
+        </button>
+      </div>
+
+    </section>
   </main>
 
-  <div id="modal-players" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
-    <div class="bg-purple-950 border-2 border-purple-500/50 rounded-3xl p-6 sm:p-8 w-full max-w-lg shadow-2xl">
-      <div class="flex justify-between items-center mb-5">
-        <h2 class="text-2xl font-black text-pink-400 flex items-center gap-2">
-          <i class="fa-solid fa-user-plus"></i> Jugadores
-        </h2>
-        <button id="btn-close-players" class="text-gray-400 hover:text-white text-2xl p-1">
-          <i class="fa-solid fa-xmark"></i>
+  <!-- RESULT POPUP MODAL (GLOBO BURBUJA) -->
+  <div id="result-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="popup-bubble w-full max-w-lg bg-gradient-to-b from-slate-900 via-purple-950 to-slate-900 border-2 border-pink-500 rounded-3xl p-6 md:p-8 text-center shadow-[0_0_60px_rgba(236,72,153,0.5)] relative overflow-hidden">
+      
+      <div id="modal-badge" class="inline-block px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest bg-pink-500/20 text-pink-300 border border-pink-500/40 mb-3">
+        VERDAD
+      </div>
+
+      <h3 id="modal-player" class="text-lg font-bold text-gray-300 mb-2">Turno de: Player</h3>
+
+      <div id="modal-text" class="text-2xl md:text-3xl font-black text-white leading-snug my-4 text-balance">
+        ¿Texto de la prenda o pregunta aquí?
+      </div>
+
+      <!-- POINTS ACTION BUTTONS -->
+      <div class="grid grid-cols-2 gap-4 mt-6">
+        <button onclick="handleResult(true)" class="bg-gradient-to-r from-emerald-600 to-green-500 hover:from-emerald-500 hover:to-green-400 text-white font-black py-3 px-4 rounded-2xl shadow-lg shadow-green-600/40 text-base md:text-lg flex flex-col items-center transition-transform active:scale-95">
+          <span>¡CUMPLIÓ!</span>
+          <span class="text-xs font-bold text-green-200 opacity-90">+20 PUNTOS</span>
+        </button>
+
+        <button onclick="handleResult(false)" class="bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-black py-3 px-4 rounded-2xl shadow-lg shadow-red-600/40 text-base md:text-lg flex flex-col items-center transition-transform active:scale-95">
+          <span>NO CUMPLIÓ</span>
+          <span class="text-xs font-bold text-red-200 opacity-90">-15 PUNTOS</span>
         </button>
       </div>
 
-      <div class="flex gap-2 mb-4">
-        <input type="text" id="input-player-name" placeholder="Nombre del amigo/a..." class="flex-1 bg-purple-900/70 border-2 border-purple-500/50 rounded-xl px-4 py-3 text-lg text-white placeholder-purple-400 focus:outline-none focus:border-pink-500 font-bold">
-        <button id="btn-add-player" class="bg-pink-600 hover:bg-pink-500 text-white px-5 py-3 rounded-xl font-black text-lg transition">
-          Añadir
-        </button>
-      </div>
+    </div>
+  </div>
 
-      <div id="player-list" class="max-h-56 overflow-y-auto space-y-2.5 mb-5 pr-1">
-        <!-- Player items rendered dynamically -->
-      </div>
+  <!-- WINNER CELEBRATION MODAL -->
+  <div id="winner-modal" class="fixed inset-0 bg-black/90 backdrop-blur-lg z-50 flex items-center justify-center p-4 hidden">
+    <div class="popup-bubble w-full max-w-md bg-gradient-to-b from-yellow-950 via-slate-900 to-black border-2 border-yellow-500 rounded-3xl p-8 text-center shadow-[0_0_80px_rgba(234,179,8,0.6)]">
+      <div class="text-6xl mb-2">👑</div>
+      <h2 class="text-xs uppercase font-extrabold tracking-widest text-yellow-400">¡TENEMOS UN CAMPEÓN!</h2>
+      <h1 id="winner-name" class="text-4xl font-black text-white my-2">JUGADOR</h1>
+      <p class="text-gray-300 text-sm">Se lleva el gran pozo acumulado de:</p>
+      <div id="winner-prize" class="text-4xl font-black text-yellow-300 my-4">$0</div>
 
-      <p class="text-sm text-purple-300 text-center mb-5 font-semibold">Agrega a los participantes para llevar el turno de giro.</p>
-
-      <button id="btn-start-game" class="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-black text-xl rounded-xl transition shadow-lg">
-        ¡Listo para jugar!
+      <button onclick="closeWinnerModal()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-3 rounded-xl text-lg shadow-lg shadow-yellow-500/30 hover:scale-105 transition-transform">
+        ¡NUEVA PARTIDA!
       </button>
     </div>
   </div>
 
-  <div id="modal-result" class="fixed inset-0 bg-black/85 backdrop-blur-lg flex items-center justify-center p-4 z-50 hidden">
-    <div id="bubble-card" class="animate-bubble bg-gradient-to-b from-purple-900 via-indigo-950 to-slate-950 border-3 border-pink-500 rounded-3xl p-6 sm:p-10 w-full max-w-2xl shadow-[0_0_60px_rgba(255,0,127,0.5)] text-center relative overflow-hidden">
-      
-      <!-- Ambient Glow Behind Popup -->
-      <div class="absolute -top-12 -left-12 w-40 h-40 bg-pink-500/20 rounded-full blur-3xl"></div>
-      <div class="absolute -bottom-12 -right-12 w-40 h-40 bg-cyan-500/20 rounded-full blur-3xl"></div>
-
-      <!-- Icon Header Badge -->
-      <div id="result-badge-icon" class="w-24 h-24 sm:w-28 sm:h-28 mx-auto -mt-2 mb-4 rounded-full bg-purple-800/80 border-4 border-pink-400 flex items-center justify-center text-4xl sm:text-5xl shadow-2xl">
-        ❓
-      </div>
-
-      <!-- Category Label -->
-      <p id="result-category" class="text-base sm:text-xl font-black uppercase tracking-widest text-pink-400 mb-2">
-        VERDAD
-      </p>
-
-      <!-- Targeted Player Name -->
-      <h3 id="result-player-target" class="text-2xl sm:text-4xl font-black text-cyan-300 text-glow-cyan mb-5">
-        ¡Le toca a Juan!
-      </h3>
-
-      <!-- Content Box -->
-      <div class="bg-purple-950/90 border-2 border-purple-500/40 rounded-2xl p-5 sm:p-8 mb-6 min-h-[140px] flex items-center justify-center shadow-inner">
-        <p id="result-text" class="text-xl sm:text-3xl text-purple-100 font-extrabold leading-relaxed sm:leading-snug">
-          ¿Dormiste alguna vez en llamada con alguien con intereses románticos?
-        </p>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <button id="btn-next-turn" class="w-full py-4 sm:py-5 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white font-black text-xl sm:text-2xl rounded-2xl transition shadow-xl glow-pink tracking-wide">
-          ¡Cumplido! Siguiente Turno 🍻
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <footer class="mt-4 text-center text-sm font-semibold text-purple-400/70 z-10">
-    Bebe con responsabilidad. ¡Prohibido rajarse! 🎉
-  </footer>
-
   <script>
-    /* =====================================================================
-       DATA COLLECTIONS & STATE
-       ===================================================================== */
-    
-    // Truth questions array
-    const TRUTHS_BASE = [
-      "Dí cuántas personas sin nombre de un jueguito traspasaste.",
+    // --- QUESTIONS & DARES ARRAYS ---
+    const truths = [
+      "¿A cuántas personas del 'jueguito' traspasaste sin dar nombre?",
       "¿Cuántas personas tuvieron o tienen nudes tuyos?",
       "¿Dormiste alguna vez en llamada con alguien con intereses románticos?",
-      "¿Alguna vez sentiste celos? ¿Te animás a contar el motivo?",
-      "¿Golpeaste a alguien? Si es sí, ¿por qué?",
-      "¿Alguna vez te atrajo alguien por su voz y al conocerlo o ver una foto, te decepcionaste?",
+      "¿Alguna vez sentiste celos? Cuenta el motivo exacto.",
+      "¿Golpeaste a alguien alguna vez? Si es sí, ¿por qué?",
+      "¿Te atrajo la voz de alguien y al conocerlo o ver una foto te decepcionaste?",
       "¿Mentiste en un baile cuando te pidieron el nombre?",
       "¿Mandaste a un amigo/a a encarar a alguien que te pareció linda/o?",
-      "¿Alguna vez cuestionaste la manera de vestir de la persona que conociste a través de internet? (Después de verse).",
-      "¿Te durmieron el chamuyo? ¿Quién?"
+      "¿Cuestionaste la ropa de alguien que conociste por internet después de verse?",
+      "¿Te durmieron el chamuyo alguna vez? ¿Quién fue?"
     ];
 
-    // Dare challenges array
-    const DARES_BASE = [
-      "Sírvete tu trago en un vaso normal y haz fondo blanco. Si te niegas, debes publicar una historia que diga \"Estoy re enpedo\" con la botella y vaso de protagonistas.",
-      "Haz que alguien responda tu historia random (sí, sube una) y hazle creer que estás muy borracho/a y hasta que no se ría de ti no pares de decir estupideces.",
-      "Quítate una prenda (no vale zapatillas ni medias; debe ser campera, bufanda, o remera. Si eres mujer y no tienes campera, el pantalón y te tapas luego).",
-      "Manda un mensaje a un amigo que no sepa que estás bebiendo y dile \"Te quiero mucho\". Hasta que marque el visto, debes mostrar en pantalla que lo vio.",
-      "Píntate los labios de rojo (si eres hombre pide un labial). Si no tienes, busca un lápiz y escríbete en la frente \"TONTO\".",
-      "Cuenta un secreto de tu infancia."
+    const dares = [
+      "Fondo blanco en un vaso normal. (Si te niegas, sube una historia diciendo 'Estoy re enpedo' mostrando botella/vaso).",
+      "Sube una historia random y hazle creer a alguien que te responda que estás muy ebrio/a hasta que se ría.",
+      "Quítate una prenda (campera, remera o pantalón; no valen medias o zapatillas).",
+      "Manda 'Te quiero mucho' a un amigo/a que no sepa que estás bebiendo y muestra la pantalla hasta que lo vea.",
+      "Píntate los labios de rojo (si eres hombre pide labial) o escríbete 'TONTO' en la frente con lápiz.",
+      "Cuenta un secreto vergonzoso de tu infancia."
     ];
 
-    // Decks for no-repeat drawn until emptied
-    let truthDeck = [...TRUTHS_BASE];
-    let dareDeck = [...DARES_BASE];
-
-    // Fixed 23 Slices for the wheel
-    const WHEEL_SLICES = [
-      { type: "VERDAD", label: "VERDAD", color: "#ec4899", icon: "❓" },
-      { type: "CONSECUENCIA", label: "CONSECUENCIA", color: "#8b5cf6", icon: "🔥" },
-      { type: "ACTION", label: "Bebes 2 sorbos", color: "#06b6d4", icon: "🍺" },
-      { type: "VERDAD", label: "VERDAD", color: "#ec4899", icon: "❓" },
-      { type: "ACTION", label: "Todos beben menos tú", color: "#f59e0b", icon: "👑" },
-      { type: "CONSECUENCIA", label: "CONSECUENCIA", color: "#8b5cf6", icon: "🔥" },
-      { type: "ACTION", label: "Todos beben", color: "#ef4444", icon: "🍻" },
-      { type: "VERDAD", label: "VERDAD", color: "#ec4899", icon: "❓" },
-      { type: "ACTION", label: "Bebe 3 sorbos grandes", color: "#3b82f6", icon: "🌊" },
-      { type: "CONSECUENCIA", label: "CONSECUENCIA", color: "#8b5cf6", icon: "🔥" },
-      { type: "ACTION", label: "Chupito Doble 🥃", color: "#10b981", icon: "🥃" },
-      { type: "VERDAD", label: "VERDAD", color: "#ec4899", icon: "❓" },
-      { type: "ACTION", label: "Sorbo de cabeza 🙃", color: "#6366f1", icon: "🤸" },
-      { type: "CONSECUENCIA", label: "CONSECUENCIA", color: "#8b5cf6", icon: "🔥" },
-      { type: "ACTION", label: "Obliga a alguien a beber", color: "#d946ef", icon: "👉" },
-      { type: "VERDAD", label: "VERDAD", color: "#ec4899", icon: "❓" },
-      { type: "ACTION", label: "Perrea 30 segs 💃", color: "#f43f5e", icon: "🎵" },
-      { type: "CONSECUENCIA", label: "CONSECUENCIA", color: "#8b5cf6", icon: "🔥" },
-      { type: "ACTION", label: "Bebe 1 sorbo", color: "#14b8a6", icon: "🥤" },
-      { type: "VERDAD", label: "VERDAD", color: "#ec4899", icon: "❓" },
-      { type: "ACTION", label: "Todos beben 🍻", color: "#ef4444", icon: "🍻" },
-      { type: "CONSECUENCIA", label: "CONSECUENCIA", color: "#8b5cf6", icon: "🔥" },
-      { type: "ACTION", label: "Bebes 2 sorbos", color: "#06b6d4", icon: "🍺" }
+    // --- ROULETTE SLICES CONFIGURATION ---
+    const slices = [
+      { label: "VERDAD", type: "truth", color: "#ec4899" },
+      { label: "BEBES 2", type: "action", text: "Bebes 2 sorbos de tu trago.", color: "#8b5cf6" },
+      { label: "CONSECUENCIA", type: "dare", color: "#ef4444" },
+      { label: "TODOS BEBEN", type: "action", text: "¡Todos en la mesa beben un sorbo!", color: "#f59e0b" },
+      { label: "VERDAD", type: "truth", color: "#ec4899" },
+      { label: "SORBO AL REVÉS", type: "action", text: "Intenta beber un sorbo con la cabeza hacia abajo.", color: "#10b981" },
+      { label: "CONSECUENCIA", type: "dare", color: "#ef4444" },
+      { label: "BEBEN MENOS TÚ", type: "action", text: "¡Todos beben menos tú!", color: "#3b82f6" },
+      { label: "VERDAD", type: "truth", color: "#ec4899" },
+      { label: "CHUPITO DOBLE", type: "action", text: "Trae un vaso de chupito, sírvete y dale duro dos veces.", color: "#8b5cf6" },
+      { label: "CONSECUENCIA", type: "dare", color: "#ef4444" },
+      { label: "OBLIGA A ALGUIEN", type: "action", text: "Elige a cualquier persona para que dé un buen sorbo.", color: "#f59e0b" },
+      { label: "VERDAD", type: "truth", color: "#ec4899" },
+      { label: "BEBE 3", type: "action", text: "Bebe 3 sorbos grandes de tu vaso.", color: "#10b981" },
+      { label: "CONSECUENCIA", type: "dare", color: "#ef4444" },
+      { label: "PERREO 30S", type: "action", text: "Ponen reggaetón y perreas durante 30 segundos.", color: "#3b82f6" }
     ];
 
-    // State Variables
-    let players = ["Jugador 1", "Jugador 2", "Jugador 3"];
+    // --- STATE MANAGEMENT ---
+    let players = [];
     let currentPlayerIndex = 0;
-    let currentRotation = 0; // In radians
+    let targetScore = 100;
     let isSpinning = false;
+    let currentAngle = 0;
+    let currentSlice = null;
 
-    /* =====================================================================
-       AUDIO SYNTHESIZER (Web Audio API for ticking & cheer sounds)
-       ===================================================================== */
-    let audioCtx = null;
+    // Remaining questions/dares pools
+    let remainingTruths = [...truths];
+    let remainingDares = [...dares];
 
-    function initAudio() {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-    }
+    // Canvas setup
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const numSlices = slices.length;
+    const arcSize = (2 * Math.PI) / numSlices;
 
+    // AUDIO SYNTHESIZER
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playTickSound() {
-      try {
-        initAudio();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.04);
-
-        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.04);
-
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.04);
-      } catch (e) {
-        // Audio error fallback
-      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.04);
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.04);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.04);
     }
 
-    function playWinSound() {
-      try {
-        initAudio();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-
-        const now = audioCtx.currentTime;
-        const notes = [261.63, 329.63, 392.00, 523.25]; // C E G C
-        
-        notes.forEach((freq, idx) => {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(freq, now + idx * 0.08);
-
-          gain.gain.setValueAtTime(0.2, now + idx * 0.08);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.3);
-
-          osc.connect(gain);
-          gain.connect(audioCtx.destination);
-
-          osc.start(now + idx * 0.08);
-          osc.stop(now + idx * 0.08 + 0.3);
-        });
-      } catch (e) {}
-    }
-
-    /* =====================================================================
-       CANVAS WHEEL RENDERING
-       ===================================================================== */
-    const canvas = document.getElementById('wheel-canvas');
-    const ctx = canvas.getContext('2d');
-    const numSlices = WHEEL_SLICES.length;
-    const sliceAngle = (2 * Math.PI) / numSlices;
-
+    // --- DRAW WHEEL ---
     function drawWheel() {
-      const width = canvas.width;
-      const height = canvas.height;
-      const centerX = width / 2;
-      const centerY = height / 2;
-      const radius = width / 2 - 12;
+      const radius = canvas.width / 2;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      ctx.clearRect(0, 0, width, height);
-
-      // Draw slices
       for (let i = 0; i < numSlices; i++) {
-        const angle = currentRotation + i * sliceAngle;
-        const slice = WHEEL_SLICES[i];
-
+        const angle = currentAngle + i * arcSize;
+        
+        // Slice Arc
         ctx.beginPath();
-        ctx.fillStyle = slice.color;
-        ctx.moveTo(centerX, centerY);
-        ctx.arc(centerX, centerY, radius, angle, angle + sliceAngle);
-        ctx.lineTo(centerX, centerY);
+        ctx.fillStyle = slices[i].color;
+        ctx.moveTo(radius, radius);
+        ctx.arc(radius, radius, radius - 10, angle, angle + arcSize);
+        ctx.lineTo(radius, radius);
         ctx.fill();
 
-        // Stroke divider line
-        ctx.lineWidth = 3;
-        ctx.strokeStyle = '#0b021a';
+        // Stroke line
+        ctx.strokeStyle = '#090214';
+        ctx.lineWidth = 4;
         ctx.stroke();
 
-        // Text & Icons
+        // Large Text inside slice
         ctx.save();
-        ctx.translate(centerX, centerY);
-        ctx.rotate(angle + sliceAngle / 2);
-        ctx.textAlign = 'right';
-        ctx.textBaseline = 'middle';
-        
-        // Large & ultra-bold typography optimized for visibility across the room
-        if (slice.label.length > 15) {
-          ctx.font = '900 23px Outfit, sans-serif';
-        } else if (slice.label.length > 10) {
-          ctx.font = '900 26px Outfit, sans-serif';
-        } else {
-          ctx.font = '900 30px Outfit, sans-serif';
-        }
-
-        // High contrast text outline / drop shadow for high readability
-        ctx.lineWidth = 5;
-        ctx.strokeStyle = '#000000';
-        ctx.strokeText(`${slice.icon} ${slice.label}`, radius - 20, 0);
-
-        ctx.fillStyle = '#ffffff';
-        ctx.fillText(`${slice.icon} ${slice.label}`, radius - 20, 0);
+        ctx.translate(radius, radius);
+        ctx.rotate(angle + arcSize / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "900 26px 'Outfit', sans-serif";
+        ctx.shadowColor = "rgba(0,0,0,0.8)";
+        ctx.shadowBlur = 8;
+        ctx.fillText(slices[i].label, radius - 35, 10);
         ctx.restore();
       }
 
-      // Outer rim styling
+      // Outer Ring Accent
       ctx.beginPath();
-      ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-      ctx.lineWidth = 14;
-      ctx.strokeStyle = '#d946ef';
+      ctx.arc(radius, radius, radius - 5, 0, 2 * Math.PI);
+      ctx.strokeStyle = '#ec4899';
+      ctx.lineWidth = 6;
       ctx.stroke();
     }
 
-    /* =====================================================================
-       SPIN LOGIC & ACCELERATION / DECELERATION
-       ===================================================================== */
-    let lastSliceIndex = -1;
+    // --- PLAYER & LEADERBOARD LOGIC ---
+    function addPlayer() {
+      const input = document.getElementById("player-name-input");
+      const name = input.value.trim();
+      if (!name) return;
 
-    function spinWheel() {
+      players.push({ name, score: 0, wins: 0, fails: 0 });
+      input.value = "";
+      updateLeaderboard();
+      updateTurnDisplay();
+      updatePrizePool();
+    }
+
+    function updateLeaderboard() {
+      const list = document.getElementById("leaderboard");
+      list.innerHTML = "";
+
+      // Sort by score descending
+      const sorted = [...players].sort((a, b) => b.score - a.score);
+
+      if (sorted.length === 0) {
+        list.innerHTML = `<p class="text-gray-500 text-sm text-center py-4">Ingresa nombres para comenzar el juego.</p>`;
+        return;
+      }
+
+      sorted.forEach((p, rank) => {
+        const originalIndex = players.indexOf(p);
+        const isCurrent = originalIndex === currentPlayerIndex && players.length > 0;
+        
+        const item = document.createElement("div");
+        item.className = `flex items-center justify-between p-3 rounded-2xl border transition-all ${
+          isCurrent ? 'bg-pink-500/20 border-pink-500/60 shadow-lg shadow-pink-500/10' : 'bg-black/30 border-purple-500/20'
+        }`;
+
+        item.innerHTML = `
+          <div class="flex items-center gap-3">
+            <span class="font-black text-sm w-6 text-center ${rank === 0 ? 'text-yellow-400 text-lg' : 'text-gray-500'}">
+              ${rank === 0 ? '👑' : '#' + (rank + 1)}
+            </span>
+            <div>
+              <div class="font-bold text-sm ${isCurrent ? 'text-pink-300' : 'text-white'}">${p.name}</div>
+              <div class="text-[10px] text-gray-400">✔️ ${p.wins} | ❌ ${p.fails}</div>
+            </div>
+          </div>
+          <div class="font-black text-lg ${p.score >= 0 ? 'text-green-400' : 'text-red-400'}">
+            ${p.score} <span class="text-xs text-gray-400 font-normal">pts</span>
+          </div>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    function updateTurnDisplay() {
+      const banner = document.getElementById("current-player-name");
+      if (players.length === 0) {
+        banner.innerText = "¡Añade Jugadores!";
+      } else {
+        banner.innerText = players[currentPlayerIndex].name;
+      }
+    }
+
+    function updatePrizePool() {
+      const bet = parseFloat(document.getElementById("bet-input").value) || 0;
+      const total = bet * players.length;
+      document.getElementById("prize-pool-display").innerText = `$${total.toLocaleString()}`;
+    }
+
+    // --- SPIN LOGIC ---
+    function spin() {
       if (isSpinning) return;
-      initAudio();
+      if (players.length === 0) {
+        alert("¡Por favor añade al menos un jugador antes de girar!");
+        return;
+      }
+
       isSpinning = true;
+      let lastTick = 0;
+      const spinAngle = Math.random() * 2000 + 3500;
+      const duration = 4500;
+      let start = null;
 
-      // Disable buttons
-      document.getElementById('spin-main-btn').classList.add('opacity-50', 'cursor-not-allowed');
-      document.getElementById('spin-center-btn').classList.add('opacity-50', 'cursor-not-allowed');
-
-      // Random target angle (At least 5 full turns + random target)
-      const extraRounds = 5 + Math.floor(Math.random() * 4);
-      const randomOffset = Math.random() * (2 * Math.PI);
-      const totalSpinAngle = extraRounds * (2 * Math.PI) + randomOffset;
-      
-      const duration = 5000; // 5 seconds spin
-      const startTime = performance.now();
-      const initialRotation = currentRotation;
-
-      function animateSpin(currentTime) {
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-
-        // Cubic ease-out formula for realistic physics deceleration
-        const easeOut = 1 - Math.pow(1 - progress, 4);
-        currentRotation = initialRotation + totalSpinAngle * easeOut;
-
-        // Check for tick sound on slice change
-        const currentNormalizedAngle = (3 * Math.PI / 2 - (currentRotation % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-        const currentSliceIndex = Math.floor(currentNormalizedAngle / sliceAngle) % numSlices;
-
-        if (currentSliceIndex !== lastSliceIndex) {
-          playTickSound();
-          lastSliceIndex = currentSliceIndex;
-        }
-
-        drawWheel();
+      function animate(timestamp) {
+        if (!start) start = timestamp;
+        const progress = (timestamp - start) / duration;
 
         if (progress < 1) {
-          requestAnimationFrame(animateSpin);
+          const easeOut = 1 - Math.pow(1 - progress, 4);
+          currentAngle = easeOut * (spinAngle * Math.PI / 180);
+
+          // Tick sound
+          if (Math.floor(currentAngle / arcSize) !== lastTick) {
+            playTickSound();
+            lastTick = Math.floor(currentAngle / arcSize);
+          }
+
+          drawWheel();
+          requestAnimationFrame(animate);
         } else {
           isSpinning = false;
-          document.getElementById('spin-main-btn').classList.remove('opacity-50', 'cursor-not-allowed');
-          document.getElementById('spin-center-btn').classList.remove('opacity-50', 'cursor-not-allowed');
-          handleSpinResult(currentSliceIndex);
+          showModalResult();
         }
       }
 
-      requestAnimationFrame(animateSpin);
+      requestAnimationFrame(animate);
     }
 
-    /* =====================================================================
-       RESULT PROCESSING & POPUP DISPLAY
-       ===================================================================== */
-    function handleSpinResult(sliceIndex) {
-      playWinSound();
-      triggerConfetti();
+    // --- RESULT HANDLING ---
+    function showModalResult() {
+      const degrees = (currentAngle * 180 / Math.PI) % 360;
+      const effectiveAngle = (360 - degrees + 270) % 360;
+      const index = Math.floor(effectiveAngle / (360 / numSlices));
+      currentSlice = slices[index];
 
-      const selectedSlice = WHEEL_SLICES[sliceIndex];
-      const activePlayer = players[currentPlayerIndex] || "Jugador";
+      const modal = document.getElementById("result-modal");
+      const badge = document.getElementById("modal-badge");
+      const text = document.getElementById("modal-text");
+      const playerLabel = document.getElementById("modal-player");
 
-      const modal = document.getElementById('modal-result');
-      const categoryText = document.getElementById('result-category');
-      const badgeIcon = document.getElementById('result-badge-icon');
-      const playerTarget = document.getElementById('result-player-target');
-      const resultText = document.getElementById('result-text');
-      const bubbleCard = document.getElementById('bubble-card');
+      playerLabel.innerText = `Turno de: ${players[currentPlayerIndex].name}`;
 
-      playerTarget.innerText = `¡Le toca a ${activePlayer}!`;
-
-      if (selectedSlice.type === 'VERDAD') {
-        categoryText.innerText = 'VERDAD';
-        categoryText.className = 'text-xs sm:text-sm font-extrabold uppercase tracking-widest text-pink-400 mb-2';
-        badgeIcon.innerText = '❓';
-        badgeIcon.className = 'w-20 h-20 mx-auto -mt-2 mb-4 rounded-full bg-pink-900/80 border-2 border-pink-400 flex items-center justify-center text-3xl shadow-lg';
-        bubbleCard.className = 'animate-bubble bg-gradient-to-b from-purple-950 via-pink-950 to-slate-950 border-2 border-pink-500 rounded-3xl p-6 sm:p-8 w-full max-w-lg shadow-[0_0_50px_rgba(255,0,127,0.5)] text-center relative overflow-hidden';
-        
-        resultText.innerText = getNextTruth();
-
-      } else if (selectedSlice.type === 'CONSECUENCIA') {
-        categoryText.innerText = 'CONSECUENCIA';
-        categoryText.className = 'text-xs sm:text-sm font-extrabold uppercase tracking-widest text-purple-400 mb-2';
-        badgeIcon.innerText = '🔥';
-        badgeIcon.className = 'w-20 h-20 mx-auto -mt-2 mb-4 rounded-full bg-purple-900/80 border-2 border-purple-400 flex items-center justify-center text-3xl shadow-lg';
-        bubbleCard.className = 'animate-bubble bg-gradient-to-b from-slate-950 via-purple-950 to-indigo-950 border-2 border-purple-500 rounded-3xl p-6 sm:p-8 w-full max-w-lg shadow-[0_0_50px_rgba(139,92,246,0.5)] text-center relative overflow-hidden';
-        
-        resultText.innerText = getNextDare();
-
+      if (currentSlice.type === "truth") {
+        badge.innerText = "VERDAD 🤐";
+        badge.className = "inline-block px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest bg-pink-500/20 text-pink-300 border border-pink-500/40 mb-3";
+        if (remainingTruths.length === 0) remainingTruths = [...truths];
+        const randIdx = Math.floor(Math.random() * remainingTruths.length);
+        text.innerText = remainingTruths.splice(randIdx, 1)[0];
+      } else if (currentSlice.type === "dare") {
+        badge.innerText = "CONSECUENCIA 🔥";
+        badge.className = "inline-block px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest bg-red-500/20 text-red-300 border border-red-500/40 mb-3";
+        if (remainingDares.length === 0) remainingDares = [...dares];
+        const randIdx = Math.floor(Math.random() * remainingDares.length);
+        text.innerText = remainingDares.splice(randIdx, 1)[0];
       } else {
-        // Direct Action Slices
-        categoryText.innerText = 'ACCIÓN DIRECTA';
-        categoryText.className = 'text-xs sm:text-sm font-extrabold uppercase tracking-widest text-cyan-400 mb-2';
-        badgeIcon.innerText = selectedSlice.icon;
-        badgeIcon.className = 'w-20 h-20 mx-auto -mt-2 mb-4 rounded-full bg-cyan-900/80 border-2 border-cyan-400 flex items-center justify-center text-3xl shadow-lg';
-        bubbleCard.className = 'animate-bubble bg-gradient-to-b from-slate-950 via-cyan-950 to-blue-950 border-2 border-cyan-500 rounded-3xl p-6 sm:p-8 w-full max-w-lg shadow-[0_0_50px_rgba(6,182,212,0.5)] text-center relative overflow-hidden';
-
-        resultText.innerText = selectedSlice.label;
+        badge.innerText = "ACCIÓN / BEBIDA 🍻";
+        badge.className = "inline-block px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest bg-amber-500/20 text-amber-300 border border-amber-500/40 mb-3";
+        text.innerText = currentSlice.text;
       }
 
-      modal.classList.remove('hidden');
+      modal.classList.remove("hidden");
     }
 
-    // Draw from Truth deck without repeating until empty
-    function getNextTruth() {
-      if (truthDeck.length === 0) {
-        truthDeck = [...TRUTHS_BASE];
+    function handleResult(success) {
+      const p = players[currentPlayerIndex];
+
+      if (success) {
+        p.score += 20;
+        p.wins++;
+      } else {
+        p.score -= 15;
+        p.fails++;
       }
-      const randIdx = Math.floor(Math.random() * truthDeck.length);
-      return truthDeck.splice(randIdx, 1)[0];
-    }
 
-    // Draw from Dare deck without repeating until empty
-    function getNextDare() {
-      if (dareDeck.length === 0) {
-        dareDeck = [...DARES_BASE];
+      document.getElementById("result-modal").classList.add("hidden");
+
+      // Check Winner
+      if (p.score >= targetScore) {
+        triggerWinner(p);
+        return;
       }
-      const randIdx = Math.floor(Math.random() * dareDeck.length);
-      return dareDeck.splice(randIdx, 1)[0];
+
+      // Next player turn
+      currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+      updateLeaderboard();
+      updateTurnDisplay();
     }
 
-    function nextTurn() {
-      document.getElementById('modal-result').classList.add('hidden');
-      if (players.length > 0) {
-        currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
-        updatePlayerUI();
-      }
+    function triggerWinner(player) {
+      confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+      const bet = parseFloat(document.getElementById("bet-input").value) || 0;
+      const totalPrize = bet * players.length;
+
+      document.getElementById("winner-name").innerText = player.name;
+      document.getElementById("winner-prize").innerText = `$${totalPrize.toLocaleString()}`;
+      document.getElementById("winner-modal").classList.remove("hidden");
     }
 
-    /* =====================================================================
-       PLAYER MANAGEMENT
-       ===================================================================== */
-    function updatePlayerUI() {
-      const activeName = players.length > 0 ? players[currentPlayerIndex] : "Añade Jugadores";
-      document.getElementById('current-player-name').innerText = activeName;
-      document.getElementById('player-count-badge').innerText = players.length;
-
-      const listContainer = document.getElementById('player-list');
-      listContainer.innerHTML = '';
-
-      players.forEach((player, idx) => {
-        const item = document.createElement('div');
-        item.className = 'flex justify-between items-center bg-purple-900/60 border border-purple-500/30 px-4 py-3 rounded-xl text-base';
-        item.innerHTML = `
-          <span class="font-extrabold ${idx === currentPlayerIndex ? 'text-cyan-300 font-black text-lg' : 'text-purple-100'}">
-            ${idx === currentPlayerIndex ? '👑 ' : ''}${player}
-          </span>
-          <button onclick="removePlayer(${idx})" class="text-rose-400 hover:text-rose-300 px-2 py-1 text-lg">
-            <i class="fa-solid fa-trash"></i>
-          </button>
-        `;
-        listContainer.appendChild(item);
-      });
+    function closeWinnerModal() {
+      document.getElementById("winner-modal").classList.add("hidden");
+      // Reset scores
+      players.forEach(p => { p.score = 0; p.wins = 0; p.fails = 0; });
+      currentPlayerIndex = 0;
+      updateLeaderboard();
+      updateTurnDisplay();
     }
 
-    function addPlayer() {
-      const input = document.getElementById('input-player-name');
-      const name = input.value.trim();
-      if (name) {
-        players.push(name);
-        input.value = '';
-        updatePlayerUI();
-      }
-    }
-
-    function removePlayer(index) {
-      players.splice(index, 1);
-      if (currentPlayerIndex >= players.length) {
-        currentPlayerIndex = 0;
-      }
-      updatePlayerUI();
-    }
-
-    /* =====================================================================
-       CONFETTI EFFECT
-       ===================================================================== */
-    const confettiCanvas = document.getElementById('confetti-canvas');
-    const confettiCtx = confettiCanvas.getContext('2d');
-    let confettiParticles = [];
-
-    function resizeConfettiCanvas() {
-      confettiCanvas.width = window.innerWidth;
-      confettiCanvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', resizeConfettiCanvas);
-    resizeConfettiCanvas();
-
-    function triggerConfetti() {
-      confettiParticles = [];
-      const colors = ['#ec4899', '#8b5cf6', '#06b6d4', '#f59e0b', '#10b981'];
-      for (let i = 0; i < 70; i++) {
-        confettiParticles.push({
-          x: confettiCanvas.width / 2,
-          y: confettiCanvas.height / 2,
-          vx: (Math.random() - 0.5) * 14,
-          vy: (Math.random() - 0.7) * 14,
-          color: colors[Math.floor(Math.random() * colors.length)],
-          size: Math.random() * 8 + 4,
-          gravity: 0.25,
-          alpha: 1
-        });
-      }
-      animateConfetti();
-    }
-
-    function animateConfetti() {
-      confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-      let active = false;
-
-      confettiParticles.forEach(p => {
-        if (p.alpha > 0) {
-          active = true;
-          p.x += p.vx;
-          p.y += p.vy;
-          p.vy += p.gravity;
-          p.alpha -= 0.015;
-
-          confettiCtx.globalAlpha = Math.max(0, p.alpha);
-          confettiCtx.fillStyle = p.color;
-          confettiCtx.fillRect(p.x, p.y, p.size, p.size);
-        }
-      });
-
-      if (active) {
-        requestAnimationFrame(animateConfetti);
-      }
-    }
-
-    /* =====================================================================
-       EVENT LISTENERS & INITIALIZATION
-       ===================================================================== */
-    window.onload = function() {
-      drawWheel();
-      updatePlayerUI();
-
-      // Spin Buttons
-      document.getElementById('spin-main-btn').addEventListener('click', spinWheel);
-      document.getElementById('spin-center-btn').addEventListener('click', spinWheel);
-      document.getElementById('wheel-canvas').addEventListener('click', spinWheel);
-
-      // Player Modal Controls
-      document.getElementById('btn-manage-players').addEventListener('click', () => {
-        document.getElementById('modal-players').classList.remove('hidden');
-      });
-      document.getElementById('btn-close-players').addEventListener('click', () => {
-        document.getElementById('modal-players').classList.add('hidden');
-      });
-      document.getElementById('btn-start-game').addEventListener('click', () => {
-        document.getElementById('modal-players').classList.add('hidden');
-      });
-      document.getElementById('btn-add-player').addEventListener('click', addPlayer);
-      document.getElementById('input-player-name').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') addPlayer();
-      });
-
-      // Result Modal Controls
-      document.getElementById('btn-next-turn').addEventListener('click', nextTurn);
-    };
+    // INITIALIZATION
+    drawWheel();
+    updateLeaderboard();
   </script>
 </body>
 </html>
