@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ruleta de Prenda & Puntos - Beber con Amigos</title>
+  <title>PAOIS DE CHUPI</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
@@ -19,11 +19,16 @@
       text-shadow: 0 0 10px rgba(255, 0, 127, 0.8), 0 0 20px rgba(255, 0, 127, 0.5);
     }
 
-    .neon-border {
-      box-shadow: 0 0 15px rgba(236, 72, 153, 0.4), inset 0 0 15px rgba(236, 72, 153, 0.2);
+    .neon-glow-img {
+      filter: drop-shadow(0 0 12px rgba(236, 72, 153, 0.9)) drop-shadow(0 0 25px rgba(236, 72, 153, 0.6));
+      animation: neonPulse 2s infinite alternate;
     }
 
-    /* Modals & Bubbles */
+    @keyframes neonPulse {
+      0% { filter: drop-shadow(0 0 8px rgba(236, 72, 153, 0.7)) drop-shadow(0 0 15px rgba(236, 72, 153, 0.4)); }
+      100% { filter: drop-shadow(0 0 16px rgba(236, 72, 153, 1)) drop-shadow(0 0 30px rgba(236, 72, 153, 0.8)); }
+    }
+
     .popup-bubble {
       animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     }
@@ -33,7 +38,6 @@
       100% { transform: scale(1) translateY(0); opacity: 1; }
     }
 
-    /* Custom scrollbar */
     ::-webkit-scrollbar {
       width: 6px;
     }
@@ -50,11 +54,15 @@
 
   <!-- TOP HEADER & CASH PRIZE POOL -->
   <header class="w-full max-w-5xl flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
-    <div class="text-center md:text-left">
-      <h1 class="text-3xl md:text-5xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-400 to-cyan-400 neon-text-pink">
-        RULETA FIESTA 🍻
-      </h1>
-      <p class="text-gray-400 text-sm md:text-base font-semibold">¡Gana puntos, cumple retos y llévate el pozo!</p>
+    <div class="flex items-center gap-3 text-center md:text-left">
+      <!-- LOGO CON EFECTO NEÓN -->
+      <img src="papoichupi.png" alt="Papo y Chupi Logo" class="w-20 h-20 md:w-24 md:h-24 object-contain neon-glow-img">
+      <div>
+        <h1 class="text-3xl md:text-5xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-400 to-cyan-400 neon-text-pink">
+          RULETA DE PAPOIS 🍻
+        </h1>
+        <p class="text-gray-400 text-sm md:text-base font-semibold">¡Gana puntos, cumple retos y llévate el pozo!</p>
+      </div>
     </div>
 
     <!-- POZO DE DINERO -->
@@ -175,7 +183,7 @@
       "¿Alguna vez sentiste celos? Cuenta el motivo exacto.",
       "¿Golpeaste a alguien alguna vez? Si es sí, ¿por qué?",
       "¿Te atrajo la voz de alguien y al conocerlo o ver una foto te decepcionaste?",
-      "¿Mentiste en un baile cuando te pidieron el nombre?",
+      "¿Mentiste en un baile cuando te preguntaron el nombre/número?",
       "¿Mandaste a un amigo/a a encarar a alguien que te pareció linda/o?",
       "¿Cuestionaste la ropa de alguien que conociste por internet después de verse?",
       "¿Te durmieron el chamuyo alguna vez? ¿Quién fue?",
@@ -185,7 +193,8 @@
       "¿Alguna vez le metiste los cuernos a una pareja/ex?",
       "¿Serías infiel si sabes con certeza que te están mintiendo y siendo infiel?",
       "¿Serías amigo/a de alguien que sabes que hablaba mal de vos? (Aunque hayan pasado 3 años o más).",
-      "¿Boludearías a alguien que sabes que le hizo pasar malos ratos a un amigo/a, o mantendrías distancia?"
+      "¿Boludearías a alguien que sabes que le hizo pasar malos ratos a un amigo/a, o mantendrías distancia? O serías amigo/a de esa persona sin importar que hizo"
+      
     ];
 
     const dares = [
@@ -195,6 +204,7 @@
       "Manda 'Te quiero mucho' a un amigo/a que no sepa que estás bebiendo y muestra la pantalla hasta que lo vea.",
       "Píntate los labios de rojo (si eres hombre pide labial) o escríbete 'TONTO' en la frente con lápiz.",
       "Cuenta un secreto vergonzoso de tu infancia."
+      "Haz una mímica de una pelicula y los demás deben adivinar, no hables."
     ];
 
     // --- ROULETTE SLICES CONFIGURATION ---
@@ -225,17 +235,14 @@
     let currentAngle = 0;
     let currentSlice = null;
 
-    // Remaining questions/dares pools
     let remainingTruths = [...truths];
     let remainingDares = [...dares];
 
-    // Canvas setup
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
     const numSlices = slices.length;
     const arcSize = (2 * Math.PI) / numSlices;
 
-    // AUDIO SYNTHESIZER
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playTickSound() {
       if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -252,7 +259,6 @@
       osc.stop(audioCtx.currentTime + 0.04);
     }
 
-    // --- DRAW WHEEL ---
     function drawWheel() {
       const radius = canvas.width / 2;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -260,7 +266,6 @@
       for (let i = 0; i < numSlices; i++) {
         const angle = currentAngle + i * arcSize;
         
-        // Slice Arc
         ctx.beginPath();
         ctx.fillStyle = slices[i].color;
         ctx.moveTo(radius, radius);
@@ -268,12 +273,10 @@
         ctx.lineTo(radius, radius);
         ctx.fill();
 
-        // Stroke line
         ctx.strokeStyle = '#090214';
         ctx.lineWidth = 4;
         ctx.stroke();
 
-        // Large Text inside slice
         ctx.save();
         ctx.translate(radius, radius);
         ctx.rotate(angle + arcSize / 2);
@@ -286,7 +289,6 @@
         ctx.restore();
       }
 
-      // Outer Ring Accent
       ctx.beginPath();
       ctx.arc(radius, radius, radius - 5, 0, 2 * Math.PI);
       ctx.strokeStyle = '#ec4899';
@@ -294,7 +296,6 @@
       ctx.stroke();
     }
 
-    // --- PLAYER & LEADERBOARD LOGIC ---
     function addPlayer() {
       const input = document.getElementById("player-name-input");
       const name = input.value.trim();
@@ -311,7 +312,6 @@
       const list = document.getElementById("leaderboard");
       list.innerHTML = "";
 
-      // Sort by score descending
       const sorted = [...players].sort((a, b) => b.score - a.score);
 
       if (sorted.length === 0) {
@@ -361,7 +361,6 @@
       document.getElementById("prize-pool-display").innerText = `$${total.toLocaleString()}`;
     }
 
-    // --- SPIN LOGIC ---
     function spin() {
       if (isSpinning) return;
       if (players.length === 0) {
@@ -383,7 +382,6 @@
           const easeOut = 1 - Math.pow(1 - progress, 4);
           currentAngle = easeOut * (spinAngle * Math.PI / 180);
 
-          // Tick sound
           if (Math.floor(currentAngle / arcSize) !== lastTick) {
             playTickSound();
             lastTick = Math.floor(currentAngle / arcSize);
@@ -400,7 +398,6 @@
       requestAnimationFrame(animate);
     }
 
-    // --- RESULT HANDLING ---
     function showModalResult() {
       const degrees = (currentAngle * 180 / Math.PI) % 360;
       const effectiveAngle = (360 - degrees + 270) % 360;
@@ -448,13 +445,11 @@
 
       document.getElementById("result-modal").classList.add("hidden");
 
-      // Check Winner
       if (p.score >= targetScore) {
         triggerWinner(p);
         return;
       }
 
-      // Next player turn
       currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
       updateLeaderboard();
       updateTurnDisplay();
@@ -472,14 +467,12 @@
 
     function closeWinnerModal() {
       document.getElementById("winner-modal").classList.add("hidden");
-      // Reset scores
       players.forEach(p => { p.score = 0; p.wins = 0; p.fails = 0; });
       currentPlayerIndex = 0;
       updateLeaderboard();
       updateTurnDisplay();
     }
 
-    // INITIALIZATION
     drawWheel();
     updateLeaderboard();
   </script>
