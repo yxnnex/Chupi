@@ -194,7 +194,6 @@
       "¿Serías infiel si sabes con certeza que te están mintiendo y siendo infiel?",
       "¿Serías amigo/a de alguien que sabes que hablaba mal de vos? (Aunque hayan pasado 3 años o más).",
       "¿Boludearías a alguien que sabes que le hizo pasar malos ratos a un amigo/a, o mantendrías distancia? O serías amigo/a de esa persona sin importar que hizo"
-      
     ];
 
     const dares = [
@@ -203,7 +202,7 @@
       "Quítate una prenda (campera, remera o pantalón; no valen medias o zapatillas).",
       "Manda 'Te quiero mucho' a un amigo/a que no sepa que estás bebiendo y muestra la pantalla hasta que lo vea.",
       "Píntate los labios de rojo (si eres hombre pide labial) o escríbete 'TONTO' en la frente con lápiz.",
-      "Cuenta un secreto vergonzoso de tu infancia."
+      "Cuenta un secreto vergonzoso de tu infancia.",
       "Haz una mímica de una pelicula y los demás deben adivinar, no hables."
     ];
 
@@ -473,6 +472,8 @@
       updateTurnDisplay();
     }
 
+    // Dibujar ruleta cuando la tipografía cargue o inmediatamente
+    document.fonts.ready.then(() => drawWheel());
     drawWheel();
     updateLeaderboard();
   </script>
